@@ -1,3 +1,2 @@
 
-This is my first project
-This is the second line
+Provisioning eks cluster with Terraform
