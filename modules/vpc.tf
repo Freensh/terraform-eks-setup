@@ -1,5 +1,5 @@
 locals {
-  cluster_name = "${var.project_name}-cluster" 
+  cluster_name = var.cluster_name
 }
 
 resource "aws_vpc" "vpc" {
@@ -9,7 +9,7 @@ resource "aws_vpc" "vpc" {
     enable_dns_support = true
 
     tags = {
-        Name = "${var.project_name}-vpc"
+        Name = var.vpc_name
         Env = var.env
     }
 }
@@ -17,9 +17,9 @@ resource "aws_vpc" "vpc" {
 resource "aws_internet_gateway" "internet_gateway" {
     vpc_id = aws_vpc.vpc.id
     tags = {
-      Name = "${var.project_name}-igw"
+      Name = var.igw_name
       Env = var.env
-      "kubernetes.io/cluster/${cluster_name}" = "owned"
+      "kubernetes.io/cluster/${local.cluster_name}" = "owned"
     }
     depends_on = [ aws_vpc.vpc ]
 }
@@ -32,9 +32,9 @@ resource "aws_subnet" "public_subnet" {
     map_public_ip_on_launch = true
 
     tags = {
-        Name = "${project_name}-public subnet-${count.index}"
+        Name = "${var.pub_sub_name}-${count.index + 1}"
         Env = var.env
-        "kubernetes.io/cluster/${cluster_name}" = "owned"
+        "kubernetes.io/cluster/${local.cluster_name}" = "owned"
         "kubernetes.io/role/elb" = 1
     }
     depends_on = [ aws_vpc.vpc ]
@@ -48,9 +48,9 @@ resource "aws_subnet" "private_subnet" {
     map_public_ip_on_launch = false
 
     tags = {
-        Name = "${project_name}-private subnet-${count.index}"
+        Name = "${var.priv_sub_name}-${count.index + 1}"
         Env = var.env
-        "kubernetes.io/cluster/${cluster_name}" = "owned"
+        "kubernetes.io/cluster/${local.cluster_name}" = "owned"
         "kubernetes.io/role/elb" = 1
     }
     depends_on = [ aws_vpc.vpc ]
@@ -65,7 +65,7 @@ resource "aws_route_table" "public-rt" {
     }
     
     tags = {
-        Name = "${var.project_name}-public-rt"
+        Name = var.pub_rt_name
         Env = var.env
     }
     depends_on = [ aws_vpc.vpc ]
@@ -84,7 +84,7 @@ resource "aws_eip" "ngw-eip" {
     domain = "vpc"
     
     tags = {
-        Name = "${var.project_name}nat-gateway-eip"
+        Name = var.ngw_eip_name
         Env = var.env
     }
     depends_on = [ aws_vpc.vpc ]
@@ -95,7 +95,7 @@ resource "aws_nat_gateway" "ngw" {
     subnet_id = aws_subnet.private_subnet[0].id
 
     tags = {
-        Name = "${var.project_name}nat-gateway"
+        Name = var.nat_gw_name
         Env = var.env
     }
     depends_on = [ aws_vpc.vpc, aws_eip.ngw-eip ]
@@ -110,7 +110,7 @@ resource "aws_route_table" "priv-rt" {
     }
     
     tags = {
-        Name = "${var.project_name}-private-rt"
+        Name = var.priv_rt_name
         Env = var.env
     }
     depends_on = [ aws_vpc.vpc ]
@@ -127,7 +127,7 @@ resource "aws_route_table_association" "priv-rt-association" {
 }
 
 resource "aws_security_group" "eks-cluster-sg" {
-    name = "${var.project_name}-cluster-sg"
+    name = var.cluster_name
     description = "Allow 443 from jump server only!"
     vpc_id = aws_vpc.vpc.id
 
@@ -145,7 +145,7 @@ resource "aws_security_group" "eks-cluster-sg" {
     }
 
     tags = {
-        Name = "${var.project_name}-cluster-sg"
+        Name = var.cluster_sg_name
         Env = var.env
     }
   

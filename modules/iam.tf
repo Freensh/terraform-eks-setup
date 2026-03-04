@@ -1,5 +1,5 @@
 locals {
-  cluster_name = "${var.project_name}-cluster" 
+  cluster_name = var.cluster_name 
 }
 
 resource "random_integer" "random-suffix" {
@@ -71,5 +71,5 @@ resource "aws_iam_role_policy_attachment" "EKS-AmazonEBSCSIDriverPolicy" {
 
 resource "aws_iam_role" "eks_oidc" {
     assume_role_policy = data.aws_iam_policy_document.eks_oidc_assume_role_policy.json
-    name = "${var.project_name}-eks-oidc"
+    name = "${var.cluster_name}-eks-oidc"
 }

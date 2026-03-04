@@ -1,6 +1,6 @@
 resource "aws_eks_cluster" "eks" {
     count = var.is_eks_cluster_enabled == true ? 1 : 0
-    name = "${var.project_name}-cluster"
+    name = var.cluster_name
     role_arn = aws_iam_role.eks-cluster-role[count.index].arn
     version = var.cluster_version
 
@@ -17,7 +17,7 @@ resource "aws_eks_cluster" "eks" {
     }
 
     tags = {
-        Name = "${project_name}-cluster"
+        Name = var.cluster_name
         Env = var.env
     }
 }
@@ -46,7 +46,7 @@ resource "aws_eks_addon" "eks-addons" {
 #NodeGroups OnDemand
 resource "aws_eks_node_group" "ondemand-node" {
     cluster_name = aws_eks_cluster.eks[0].name
-    node_group_name = "${var.project_name}-on-demand-nodes"
+    node_group_name = "${var.cluster_name}-on-demand-nodes"
 
     node_role_arn = aws_iam_role.eks-nodegroup-role[0].arn
     subnet_ids = [aws_subnet.private_subnet[0].id, aws_subnet.private_subnet[1].id, aws_subnet.private_subnet[2].id]
@@ -68,12 +68,12 @@ resource "aws_eks_node_group" "ondemand-node" {
     }
 
     tags = {
-      Name = "${var.project_name}-ondemand-nodes"
+      Name = "${var.cluster_name}-ondemand-nodes"
       Env = var.env
     }
     tags_all = {
-      "kubernetes.io/cluster/${var.project_name}-cluster" = "owned"
-      Name = "${var.project_name}-ondemand-nodes"
+      "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+      Name = "${var.cluster_name}-ondemand-nodes"
       Env = var.env
     }
 
@@ -83,7 +83,7 @@ resource "aws_eks_node_group" "ondemand-node" {
 # Node Group Spot nodes
 resource "aws_eks_node_group" "spot-node" {
   cluster_name = aws_eks_cluster.eks[0].name
-  node_group_name = "${var.project_name}-spot-nodes"
+  node_group_name = "${var.cluster_name}-spot-nodes"
 
   node_role_arn = aws_iam_role.eks-nodegroup-role[0].arn
   subnet_ids = [aws_subnet.private_subnet[0].id, aws_subnet.private_subnet[1].id, aws_subnet.private_subnet[2].id]
@@ -106,12 +106,12 @@ resource "aws_eks_node_group" "spot-node" {
   }
 
   tags = {
-    Name = "${var.project_name}-spot-nodes"
+    Name = "${var.var.cluster_name}-spot-nodes"
     Env = var.env
   }
   tags_all = {
-    "kubernetes.io/cluster/${var.project_name}-cluster" = "owned"
-    Name = "${var.project_name}-spot-nodes"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    Name = "${var.cluster_name}-spot-nodes"
     Env = var.env
   }
 
